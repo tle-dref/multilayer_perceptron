@@ -1,54 +1,32 @@
 import pandas as pd
 import sys as sys
-import matplotlib as plt
-import seaborn as sbn
+# import matplotlib.pyplot as plt
 
-def process_data(file_path):
-    data = pd.read_csv(file_path, header=None)
+def create_database(file_path: str):
+    """Creates a pandas DataFrame from the given file path.
+    Args:
+        file_path (str): The path to the file (CSV).
+    Returns:
+        pd.DataFrame: The resulting DataFrame."""
 
-    columns = [
-        'id', 'diagnosis',
-        'radius_mean', 'texture_mean', 'perimeter_mean', 'area_mean',
-        'smoothness_mean', 'compactness_mean', 'concavity_mean', 'concave_points_mean', 'symmetry_mean', 'fractal_dimension_mean',
-        'radius_se', 'texture_se', 'perimeter_se', 'area_se',
-        'smoothness_se', 'compactness_se', 'concavity_se', 'concave_points_se', 'symmetry_se', 'fractal_dimension_se',
-        'radius_worst', 'texture_worst', 'perimeter_worst', 'area_worst',
-        'smoothness_worst', 'compactness_worst', 'concavity_worst', 'concave_points_worst', 'symmetry_worst', 'fractal_dimension_worst'
-    ]
-
-    data.columns = columns
-    data = data.drop(columns=['id'])
-    data['diagnosis'] = data["diagnosis"].map({'M': 1, 'B': 0})
-    print(data.head)
-
-    print(60*"-")
-    print(data.isnull().sum())
-
-    return data
+    try:
+        temp_db = pd.read_csv(file_path)
+        return (temp_db)
+    except FileNotFoundError:
+        print(f"Error: The file at path '{file_path}' was not found.")
+    except pd.errors.EmptyDataError:
+        print(f"Error: The file at path '{file_path}' is empty.")
 
 
-import matplotlib.pyplot as plt
-
-def plot_class_distribution(data):
-    counts = data['diagnosis'].value_counts()
-    labels = ['Benign', 'Malignant']
-    values = [counts[0], counts[1]]
-    plt.bar(labels, values, color=['lightblue', 'salmon'])
-    plt.title('Diagnosis Class Distribution')
-    plt.ylabel('Count')
-
-    for i, val in enumerate(values):
-        plt.text(i, val + 5, str(val), ha='center')
-
-    plt.tight_layout()
-    plt.show()
-
-def visualize_data(data):
-    plot_class_distribution(data)
 def main():
-    file = sys.argv[1]
-    data = process_data(file)
-    visualize_data(data)
+    try:
+        assert len(sys.argv) == 2, "path to dataset is required (\"../data/data.csv\")"
+        file_path = sys.argv[1]
+        db = create_database(file_path)
+        print(db)
+    except AssertionError as e:
+        print(f"{e}")
+
 
 if __name__ == "__main__":
     main()
