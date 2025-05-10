@@ -91,6 +91,9 @@ def visualize_data(data):
     plot_correlation_matrix(data)
     corr_with_target = data.corr()['diagnosis'].drop('diagnosis').sort_values(ascending=False)
     print(corr_with_target)
+    dropable_feature = [feat for feat, corr in data.corr()['diagnosis'].drop('diagnosis').items() if abs(corr) <= 0.4]
+    print(40*'-' + "dropable_feature" + 40 * '-')
+    print(dropable_feature)
 
 def main():
     file = sys.argv[1]
