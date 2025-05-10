@@ -43,8 +43,55 @@ def plot_class_distribution(data):
     plt.tight_layout()
     plt.show()
 
+def plot_feature_distribution(data, feature):
+    malignant = data[data['diagnosis'] == 1][feature]
+    benign = data[data['diagnosis'] == 0][feature]
+
+    plt.hist([benign, malignant], bins=30, label=['Benign', 'Malignant'], color=['lightblue', 'salmon'], alpha=0.7)
+    plt.title(f'Distribution of {feature}')
+    plt.xlabel(feature)
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_feature_boxplot(data, feature):
+    benign = data[data['diagnosis'] == 0][feature]
+    malignant = data[data['diagnosis'] == 1][feature]
+
+    plt.boxplot([benign, malignant], labels=['Benign', 'Malignant'])
+    plt.title(f'{feature} by Diagnosis')
+    plt.ylabel(feature)
+    plt.tight_layout()
+    plt.show()
+
+def plot_correlation_matrix(data):
+    corr_matrix = data.corr()
+
+    plt.figure(figsize=(12, 10))
+    plt.imshow(corr_matrix, cmap='coolwarm', interpolation='nearest')
+    plt.colorbar()
+    plt.title('Feature Correlation Matrix')
+
+    ticks = range(len(corr_matrix.columns))
+    plt.xticks(ticks, corr_matrix.columns, rotation=90, fontsize=6)
+    plt.yticks(ticks, corr_matrix.columns, fontsize=6)
+
+    plt.tight_layout()
+    plt.show()
+
 def visualize_data(data):
     plot_class_distribution(data)
+    feature = [col for col in data.columns if col != 'diagnosis']
+    #for column in feature:
+        #plot_feature_boxplot(data, column)
+        #plot_feature_distribution(data, column)
+    #this shows us that symmetry_mean,fractal_dimension_mean,texture_se, smoothness_se, symmetry_se
+    #are not very usefull for our model to train on
+    plot_correlation_matrix(data)
+    corr_with_target = data.corr()['diagnosis'].drop('diagnosis').sort_values(ascending=False)
+    print(corr_with_target)
+
 def main():
     file = sys.argv[1]
     data = process_data(file)
