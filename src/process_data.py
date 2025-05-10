@@ -2,6 +2,7 @@ import pandas as pd
 import sys as sys
 import matplotlib as plt
 import seaborn as sbn
+from sklearn.model_selection import train_test_split
 
 def process_data(file_path):
     data = pd.read_csv(file_path, header=None)
@@ -91,14 +92,31 @@ def visualize_data(data):
     plot_correlation_matrix(data)
     corr_with_target = data.corr()['diagnosis'].drop('diagnosis').sort_values(ascending=False)
     print(corr_with_target)
-    dropable_feature = [feat for feat, corr in data.corr()['diagnosis'].drop('diagnosis').items() if abs(corr) <= 0.4]
-    print(40*'-' + "dropable_feature" + 40 * '-')
-    print(dropable_feature)
+    selected_feature = [feat for feat, corr in data.corr()['diagnosis'].drop('diagnosis').items() if abs(corr) >= 0.4]
+    print(40*'-' + "selected_feature" + 40 * '-')
+    print(selected_feature)
+    return selected_feature
 
 def main():
     file = sys.argv[1]
     data = process_data(file)
-    visualize_data(data)
+    selected_feature = visualize_data(data)
+    X = data[selected_feature]
+    y = data['diagnosis']
+    # Split the data into training and validation sets, important to prevent overfitting
+    X_train, X_val, y_train, y_val = train_test_split(
+    X, y,
+    test_size=0.2,       # 80% train, 20% validation
+    random_state=42,     # for reproducibility
+    stratify=y           # keeps class balance (same amount of benign/malignant in train/val)
+    )
+    #this is the part where we scale our data, wich puts all the data in the same range, mean is 0 and std is 1
+    mean = X_train.mean()
+    std = X_train.std()
+    X_train = (X_train - mean) / std
+    #use the same mean and std to scale the validation set to prevent data leakage and misleading results
+    X_val = (X_val - mean) / std
+
 
 if __name__ == "__main__":
     main()
