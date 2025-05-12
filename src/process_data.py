@@ -2,9 +2,30 @@ import pandas as pd
 import sys as sys
 import matplotlib as plt
 import seaborn as sbn
+import os as os
+import pickle as plk
 from sklearn.model_selection import train_test_split
 
-def process_data(file_path):
+DATA_PATH = "data/processed_data.plk"
+
+def save_processed_data(X_train, X_val, y_train, y_val, mean, std):
+    with open(DATA_PATH, 'wb') as f:
+        plk.dump({
+            'X_train': X_train,
+            'X_val': X_val,
+            'y_train': y_train,
+            'y_val': y_val,
+            'mean': mean,
+            'std': std
+        }, f)
+
+def load_processed_data():
+    if not os.path.exists(DATA_PATH):
+        raise FileNotFoundError("Processed data not found. Please run with --data first.")
+    with open(DATA_PATH, 'rb') as f:
+        return plk.load(f)
+
+def init_data(file_path):
     data = pd.read_csv(file_path, header=None)
 
     columns = [
@@ -96,27 +117,3 @@ def visualize_data(data):
     print(40*'-' + "selected_feature" + 40 * '-')
     print(selected_feature)
     return selected_feature
-
-def main():
-    file = sys.argv[1]
-    data = process_data(file)
-    selected_feature = visualize_data(data)
-    X = data[selected_feature]
-    y = data['diagnosis']
-    # Split the data into training and validation sets, important to prevent overfitting
-    X_train, X_val, y_train, y_val = train_test_split(
-    X, y,
-    test_size=0.2,       # 80% train, 20% validation
-    random_state=42,     # for reproducibility
-    stratify=y           # keeps class balance (same amount of benign/malignant in train/val)
-    )
-    #this is the part where we scale our data, wich puts all the data in the same range, mean is 0 and std is 1
-    mean = X_train.mean()
-    std = X_train.std()
-    X_train = (X_train - mean) / std
-    #use the same mean and std to scale the validation set to prevent data leakage and misleading results
-    X_val = (X_val - mean) / std
-
-
-if __name__ == "__main__":
-    main()
