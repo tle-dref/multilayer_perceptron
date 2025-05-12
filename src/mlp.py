@@ -128,6 +128,11 @@ class MLP:
             raise ValueError("Unsupported loss function")
         # Derivative of the loss
 
+    def softmax(self, x):
+        # Apply softmax function to the last layer (output layer)
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))  # Stabilization
+        return e_x / np.sum(e_x, axis=1, keepdims=True)
+
     def forward(self, x):
         """
         Process the input through each layer of the MLP.
@@ -147,35 +152,152 @@ class MLP:
             d_loss = layer.backward(d_loss, self.lr)
         # Backward pass: backpropagate through each layer
 
-    def fit(self, x_train, y_train, epochs=100, batch_size=32):
+    def evaluate(self, x, y_true):
         """
-        Train the MLP using the provided training data.
+        Evaluate the model on given data.
+
+        Args:
+            x (np.array or pandas.DataFrame): Input features
+            y_true (np.array or pandas.Series): True labels
+
+        Returns:
+            float: Loss value
+            float: Accuracy (for binary classification)
+        """
+        # Convert pandas objects to numpy if needed
+        if hasattr(x, 'to_numpy'):
+            x = x.to_numpy()
+        if hasattr(y_true, 'to_numpy'):
+            y_true = y_true.to_numpy()
+
+        y_pred = self.forward(x)
+        loss = self._loss(y_pred, y_true)
+        # Calculate accuracy for binary classification
+        y_pred_class = (y_pred > 0.5).astype(int)
+        # Ensure y_true has the right shape
+        if isinstance(y_true, np.ndarray) and y_true.ndim == 1:
+            y_true = y_true.reshape(-1, 1)
+        accuracy = np.mean(y_pred_class == y_true)
+        return loss, accuracy
+
+
+    def fit(self, x_train, y_train, x_val=None, y_val=None, epochs=100, batch_size=32, early_stopping=True, patience=10):
+        """
+        Train the MLP using the provided training data with validation monitoring.
+
         Args:
             x_train (np.array): Input features for training.
             y_train (np.array): Target values corresponding to the input features.
+            x_val (np.array, optional): Validation features.
+            y_val (np.array, optional): Validation targets.
             epochs (int): Number of times to iterate over the entire dataset.
             batch_size (int): Number of samples per batch to process.
+            early_stopping (bool): Whether to use early stopping.
+            patience (int): Number of epochs with no improvement after which training will be stopped.
+
         Trains the model by repeatedly iterating over the training data in batches, updating the model weights after each batch.
-        After each epoch, prints the current loss, which indicates how well the model is performing.
+        After each epoch, prints the current loss and validation metrics if validation data is provided.
         """
-        x_train = x_train.to_numpy()
-        y_train = y_train.to_numpy()
+        # Convert pandas dataframes to numpy arrays if needed
+        if hasattr(x_train, 'to_numpy'):
+            x_train = x_train.to_numpy()
+        if hasattr(y_train, 'to_numpy'):
+            y_train = y_train.to_numpy()
+
+        # Convert validation data if provided
+        if x_val is not None and hasattr(x_val, 'to_numpy'):
+            x_val = x_val.to_numpy()
+        if y_val is not None and hasattr(y_val, 'to_numpy'):
+            y_val = y_val.to_numpy()
+
+        # Reshape targets to column vectors if they're 1D
         if y_train.ndim == 1:
             y_train = y_train.reshape(-1, 1)
+        if y_val is not None and y_val.ndim == 1:
+            y_val = y_val.reshape(-1, 1)
+
+        # Initialize variables for early stopping
+        best_val_loss = float('inf')
+        epochs_no_improve = 0
+        best_weights = None
+        best_biases = None
+
+        train_losses = []
+        val_losses = []
+
         for epoch in range(epochs):
+            # Shuffle training data
             permutation = np.random.permutation(len(x_train))
-            x_train = x_train[permutation]
-            y_train = y_train[permutation]
+            x_train_shuffled = x_train[permutation]
+            y_train_shuffled = y_train[permutation]
             for i in range(0, len(x_train), batch_size):
-                x_batch = x_train[i:i + batch_size]
-                y_batch = y_train[i:i + batch_size]
+                x_batch = x_train_shuffled[i:i + batch_size]
+                y_batch = y_train_shuffled[i:i + batch_size]
                 y_pred = self.forward(x_batch)
                 self.backward(y_pred, y_batch)
 
-            y_pred_full = self.forward(x_train)
-            loss = self._loss(y_pred_full, y_train)
-            print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss:.4f}")
+            # Evaluate on training data
+            train_loss, train_acc = self.evaluate(x_train, y_train)
+            train_losses.append(train_loss)
+
+            # Evaluate on validation data if provided
+            if x_val is not None and y_val is not None:
+                val_loss, val_acc = self.evaluate(x_val, y_val)
+                val_losses.append(val_loss)
+
+                # Print progress with validation metrics
+                print(f"Epoch {epoch + 1}/{epochs}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, "
+                      f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+
+                # Early stopping logic
+                if early_stopping:
+                    if val_loss < best_val_loss:
+                        best_val_loss = val_loss
+                        epochs_no_improve = 0
+                        # Store the best weights
+                        best_weights = [np.copy(layer.weights) for layer in self.layers]
+                        best_biases = [np.copy(layer.bias) for layer in self.layers]
+                    else:
+                        epochs_no_improve += 1
+                        if epochs_no_improve >= patience:
+                            print(f"Early stopping triggered after {epoch + 1} epochs")
+                            # Restore best weights
+                            for i, layer in enumerate(self.layers):
+                                layer.weights = best_weights[i]
+                                layer.bias = best_biases[i]
+                            break
+            else:
+                print(f"Epoch {epoch + 1}/{epochs}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
+        history = {
+            'train_loss': train_losses,
+        }
+        if x_val is not None and y_val is not None:
+            history['val_loss'] = val_losses
+        return history
 
     def predict(self, x):
+        """
+        Make binary predictions on input data.
+        Args:
+            x (np.array): Input features
+        Returns:
+            np.array: Binary predictions (0 or 1)
+        """
+        # Convert pandas dataframe to numpy array if needed
+        if hasattr(x, 'to_numpy'):
+            x = x.to_numpy()
+
         y_pred = self.forward(x)
         return (y_pred > 0.5).astype(int)
+
+    def predict_proba(self, x):
+        """
+        Predict probabilities for input data.
+        Args:
+            x (np.array): Input features
+        Returns:
+            np.array: Predicted probabilities (between 0 and 1)
+        """
+        if hasattr(x, 'to_numpy'):
+            x = x.to_numpy()
+        return self.forward(x)

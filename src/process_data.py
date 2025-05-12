@@ -41,9 +41,6 @@ def init_data(file_path):
     data.columns = columns
     data = data.drop(columns=['id'])
     data['diagnosis'] = data["diagnosis"].map({'M': 1, 'B': 0})
-    print(data.head)
-
-    print(60*"-")
     print(data.isnull().sum())
 
     return data
@@ -113,7 +110,9 @@ def visualize_data(data):
     plot_correlation_matrix(data)
     corr_with_target = data.corr()['diagnosis'].drop('diagnosis').sort_values(ascending=False)
     print(corr_with_target)
-    selected_feature = [feat for feat, corr in data.corr()['diagnosis'].drop('diagnosis').items() if abs(corr) >= 0.4]
+
+def select_features(data) :
+    selected_feature = [feat for feat, corr in data.corr()['diagnosis'].drop('diagnosis').items() if abs(corr) >= 0.25]
     print(40*'-' + "selected_feature" + 40 * '-')
     print(selected_feature)
     return selected_feature
