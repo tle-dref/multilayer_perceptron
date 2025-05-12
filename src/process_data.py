@@ -1,6 +1,8 @@
 import pandas as pd
 import sys as sys
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+# from sklearn.ensemble import RandomForestClassifier
+
 
 #! --> Error tested !
 
@@ -28,7 +30,41 @@ def get_column_names(temp_db: pd.DataFrame):
         "compactness_se", "concavity_se", "concave_points_se", "symmetry_se", "fractal_dimension_se",
         "radius_worst", "texture_worst", "perimeter_worst", "area_worst", "smoothness_worst",
         "compactness_worst", "concavity_worst", "concave_points_worst", "symmetry_worst", "fractal_dimension_worst"]
+    temp_db["diagnosis"] = temp_db["diagnosis"].map({"B": 0, "M":1})
     return (temp_db)
+
+
+# def random_forest(db: pd.DataFrame):
+#     # Sample dataset
+#     X = db.drop(['id', 'diagnosis'], axis=1)
+#     y = db['diagnosis']
+
+#     # Fit model
+#     model = RandomForestClassifier(n_estimators=100, random_state=42)
+#     model.fit(X, y)
+
+#     # Feature importances
+#     importances = model.feature_importances_
+#     features = X.columns
+
+#     # Plot
+#     plt.figure(figsize=(8, 4))
+#     plt.barh(features, importances)
+#     plt.xlabel("Feature Importance")
+#     plt.title("Random Forest Feature Ranking")
+#     plt.show()
+
+
+def bar_chart(db: pd.DataFrame):
+    m_row = db[db["diagnosis"] == 'M'].iloc[0, 2:]
+    b_row = db[db["diagnosis"] == 'B'].iloc[0, 2:]
+    plt.figure(figsize=(8, 5))
+    plt.bar(m_row.index, m_row.values, color="red")
+    plt.bar(b_row.index, b_row.values, color="mediumseagreen")
+    plt.xticks(rotation=90)
+    plt.title('Data malignant or benign')
+    plt.tight_layout()
+    plt.show()
 
 
 def main():
@@ -38,6 +74,8 @@ def main():
         db = create_database(file_path)
         if (db is None):
             return
+        # bar_chart(db)
+        # random_forest(db)     #get useful features
     except AssertionError as e:
         print(f"{e}")
 
