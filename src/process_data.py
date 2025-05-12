@@ -6,6 +6,27 @@ import matplotlib.pyplot as plt
 
 #! --> Error tested !
 
+# def random_forest(db: pd.DataFrame):
+#     # Sample dataset
+#     X = db.drop(['id', 'diagnosis'], axis=1)
+#     y = db['diagnosis']
+
+#     # Fit model
+#     model = RandomForestClassifier(n_estimators=100, random_state=42)
+#     model.fit(X, y)
+
+#     # Feature importances
+#     importances = model.feature_importances_
+#     features = X.columns
+
+#     # Plot
+#     plt.figure(figsize=(8, 4))
+#     plt.barh(features, importances)
+#     plt.xlabel("Feature Importance")
+#     plt.title("Random Forest Feature Ranking")
+#     plt.show()
+
+
 def create_database(file_path: str):
     """Creates a pandas DataFrame from the given file path.
     Args:
@@ -32,27 +53,6 @@ def get_column_names(temp_db: pd.DataFrame):
         "compactness_worst", "concavity_worst", "concave_points_worst", "symmetry_worst", "fractal_dimension_worst"]
     temp_db["diagnosis"] = temp_db["diagnosis"].map({"B": 0, "M":1})
     return (temp_db)
-
-
-# def random_forest(db: pd.DataFrame):
-#     # Sample dataset
-#     X = db.drop(['id', 'diagnosis'], axis=1)
-#     y = db['diagnosis']
-
-#     # Fit model
-#     model = RandomForestClassifier(n_estimators=100, random_state=42)
-#     model.fit(X, y)
-
-#     # Feature importances
-#     importances = model.feature_importances_
-#     features = X.columns
-
-#     # Plot
-#     plt.figure(figsize=(8, 4))
-#     plt.barh(features, importances)
-#     plt.xlabel("Feature Importance")
-#     plt.title("Random Forest Feature Ranking")
-#     plt.show()
 
 
 def bar_chart(db: pd.DataFrame):
@@ -82,3 +82,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+#LIRE LES NOTES 
