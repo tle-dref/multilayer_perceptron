@@ -1,2 +1,2 @@
-*.plk
-test.csv
+*.pkl
+data/test.csv
