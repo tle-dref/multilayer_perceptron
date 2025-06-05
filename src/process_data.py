@@ -4,7 +4,6 @@ import matplotlib as plt
 import seaborn as sbn
 import os as os
 import pickle as plk
-from sklearn.model_selection import train_test_split
 
 DATA_PATH = "data/processed_data.plk"
 

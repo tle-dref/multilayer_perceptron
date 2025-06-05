@@ -10,6 +10,27 @@ from process_data import init_data, visualize_data, load_processed_data, save_pr
 from mlp import MLP
 
 
+def draw_acc_loss(history):
+    """Draw both accuracy and losses plot after the model was trained"""
+    plt.figure(figsize=(10, 5))
+    plt.plot(history['train_loss'], label='Training Loss')
+    plt.plot(history['val_loss'], label='Validation Loss')
+    plt.title('Model Training History')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(history['train_accuracy'], label='Training accuracy')
+    plt.plot(history['val_accuracy'], label='Validation accuracy')
+    plt.title('Model Training History')
+    plt.xlabel('Epochs')
+    plt.ylabel('accuracy')
+    plt.legend()
+    plt.show()
+    plt.plot
+
 def main():
     usage = "Usage:\n  --data <path_to_the_data>\n  --train \n --predict"
     if len(sys.argv) < 2:
@@ -71,19 +92,11 @@ def main():
         # Save the trained model
         with open('model.pkl', 'wb') as f:
             plk.dump(model, f)
-        plt.figure(figsize=(10, 5))
-        plt.plot(history['train_loss'], label='Training Loss')
-        plt.plot(history['val_loss'], label='Validation Loss')
-        plt.title('Model Training History')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.show()
         # Evaluate final model performance
         final_val_loss, final_val_acc = model.evaluate(X_val, y_val)
-        print(f"Final validation accuracy: {final_val_acc:.4f}")
         print("Model training done.")
-
+        print(f"Final validation accuracy: {final_val_acc:.4f}")
+        draw_acc_loss(history)
     elif sys.argv[1] == "--predict":
         if len(sys.argv) < 3:
             print("Please provide a path to the data file for prediction.")

@@ -224,6 +224,8 @@ class MLP:
 
         train_losses = []
         val_losses = []
+        train_accs = []
+        val_accs = []
 
         for epoch in range(epochs):
             # Shuffle training data
@@ -239,11 +241,13 @@ class MLP:
             # Evaluate on training data
             train_loss, train_acc = self.evaluate(x_train, y_train)
             train_losses.append(train_loss)
+            train_accs.append(train_acc)
 
             # Evaluate on validation data if provided
             if x_val is not None and y_val is not None:
                 val_loss, val_acc = self.evaluate(x_val, y_val)
                 val_losses.append(val_loss)
+                val_accs.append(val_acc)
 
                 # Print progress with validation metrics
                 print(f"Epoch {epoch + 1}/{epochs}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, "
@@ -270,9 +274,11 @@ class MLP:
                 print(f"Epoch {epoch + 1}/{epochs}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
         history = {
             'train_loss': train_losses,
+            'train_accuracy': train_accs,
         }
         if x_val is not None and y_val is not None:
             history['val_loss'] = val_losses
+            history['val_accuracy'] = val_accs
         return history
 
     def predict(self, x):
