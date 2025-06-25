@@ -1,57 +1,50 @@
 import sys as sys
 import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestClassifier
-from process_data import *
-
-#! --> Error tested !
-
-def random_forest(db: pd.DataFrame):
-    # Sample dataset
-    X = db.drop(['id', 'diagnosis'], axis=1)
-    y = db['diagnosis']
-
-    # Fit model
-    model = RandomForestClassifier(n_estimators=100, random_state=12)
-    model.fit(X, y)
-
-    # Feature importances
-    importances = model.feature_importances_
-    features = X.columns
-
-    # Plot
-    plt.figure(figsize=(8, 4))
-    plt.barh(features, importances)
-    plt.xlabel("Feature Importance")
-    plt.title("Random Forest Feature Ranking")
-    plt.show()
+import seaborn as sns
+import pandas as pd
 
 
-def bar_chart(db: pd.DataFrame):
-    m_row = db[db["diagnosis"] == 1].iloc[0, 2:]
-    b_row = db[db["diagnosis"] == 0].iloc[0, 2:]
-    plt.figure(figsize=(8, 5))
-    plt.bar(m_row.index, m_row.values, color="red")
-    plt.bar(b_row.index, b_row.values, color="mediumseagreen")
-    plt.xticks(rotation=90)
-    plt.title('Data malignant or benign')
-    plt.tight_layout()
+def create_database(file_path: str):
+    """Creates a pandas DataFrame from the given file path.
+    Args:
+        file_path (str): The path to the file (CSV).
+    Returns:
+        pd.DataFrame: The resulting DataFrame."""
+
+    try:
+        temp_db = pd.read_csv(file_path)
+        return (get_column_names(temp_db))
+    except FileNotFoundError as f:
+        print(f"FileNotFoundError: {f}") #!
+    except ValueError as v:
+        print(f"ValueError: {v}") #!
+
+
+def get_column_names(temp_db: pd.DataFrame):
+    """"""
+    temp_db.columns = ["id", "diagnosis",
+        "radius_mean", "texture_mean", "perimeter_mean", "area_mean", "smoothness_mean",
+        "compactness_mean", "concavity_mean", "concave_points_mean", "symmetry_mean", "fractal_dimension_mean",
+        "radius_se", "texture_se", "perimeter_se", "area_se", "smoothness_se",
+        "compactness_se", "concavity_se", "concave_points_se", "symmetry_se", "fractal_dimension_se",
+        "radius_worst", "texture_worst", "perimeter_worst", "area_worst", "smoothness_worst",
+        "compactness_worst", "concavity_worst", "concave_points_worst", "symmetry_worst", "fractal_dimension_worst"]
+    temp_db["diagnosis"] = temp_db["diagnosis"].map({"B": 0, "M":1})
+    return (temp_db)
+
+
+def cor_matrix(db: pd.DataFrame, show: bool):
+    """"""
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(db.corr(),annot=False, cmap='coolwarm')
+    tab = db.corr().values
+    # [print(f"{x > 0.3}") for x in tab]
+    # print(tab.values)
     plt.show()
 
 
 def main():
-    if (len(sys.argv) != 3):
-        print("Wrong number of args --> 2 or 3") #!
-        return()
-    file_path = sys.argv[1]
-    db = create_database(file_path)
-    if (db is None):
-        return()
-    if (len(sys.argv) == 3 and sys.argv[2] == "--rdmforest"):
-        random_forest(db)
-    elif (len(sys.argv) == 3 and sys.argv[2] == "--barchart"):
-        bar_chart(db)
-    else:
-        print(f"Flag '{sys.argv[2]}' not found. ex: --rdmforest, --barchart") #!
+    """"""
 
 
 if __name__ == "__main__":
