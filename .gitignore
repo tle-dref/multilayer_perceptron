@@ -1,3 +1,4 @@
 src/__pycache__
-data/train_dataset.csv
-data/validation_dataset.csv
+data/data.csv
+data/train.csv
+data/val.csv
