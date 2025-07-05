@@ -59,10 +59,12 @@ def separate_dataset(dataset: pd.DataFrame, seed: int, train_ratio: float = 0.8)
     validation_dt = dataset.iloc[split_index:]
     return (train_dt, validation_dt)
 
+
 def save_to_csv(dataset: pd.DataFrame, filename: str):
     """"""
     dataset.to_csv(filename)
     print(f"Dataset saved in {filename}")
+
 
 def main():
     """"""
@@ -73,17 +75,18 @@ def main():
     parser.add_argument('--seed', type=int, default=1349, help='Seed to separate dataset')
     args = parser.parse_args()
     try:
-        assert args.dataset == "data/data.csv" or args.dataset == "data.csv", "Wrong path to dataset"
+        assert args.dataset == "data/data.csv", "Wrong path to dataset"
         db = create_database(args.dataset)
         if (args.mode == "graph"):
             dataset = cor_matrix(db, True)
         elif (args.mode == "separate"):
             dataset = cor_matrix(db, False)
             train_dt, validation_dt = separate_dataset(dataset, args.seed)
-            save_to_csv(train_dt, "~/Documents/multilayer_perceptron/data/train_dataset.csv")
-            save_to_csv(validation_dt, "~/Documents/multilayer_perceptron/data/validation_dataset.csv")
+            save_to_csv(train_dt, "~/Documents/multilayer_perceptron/src/data/train.csv")
+            save_to_csv(validation_dt, "~/Documents/multilayer_perceptron/src/data/val.csv")
     except AssertionError as e:
         print(f"AssertionError: {e}")
+
 
 if __name__ == "__main__":
     main()
