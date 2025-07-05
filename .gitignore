@@ -1,4 +1,4 @@
 src/__pycache__
-data/data.csv
-data/train.csv
-data/val.csv
+src/data/data.csv
+src/data/train.csv
+src/data/val.csv
